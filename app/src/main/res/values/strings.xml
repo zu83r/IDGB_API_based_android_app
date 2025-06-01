@@ -1,3 +1,20 @@
 <resources>
     <string name="app_name">IGDB_API_based_android_app</string>
+    <string name="PEGI_3">PEGI 3</string>
+    <string name="PEGI_7">PEGI 7</string>
+    <string name="PEGI_12">PEGI 12</string>
+    <string name="PEGI_16">PEGI 16</string>
+    <string name="PEGI_18">PEGI 18</string>
+    <string name="PEGI_BAD_LANGUAGE">PEGI Bad Language</string>
+    <string name="PEGI_DISCRIMINATION">PEGI Discrimination</string>
+    <string name="PEGI_DRUGS">PEGI Drugs</string>
+    <string name="PEGI_FEAR">PEGI Fear</string>
+    <string name="PEGI_GAMBLING">PEGI Gambling</string>
+    <string name="PEGI_HORROR">PEGI Horror</string>
+    <string name="PEGI_IN_GAME_PURCHASES">PEGI In-Game Purchases</string>
+    <string name="PEGI_ONLINE">PEGI Online</string>
+    <string name="PEGI_SEX">PEGI Sex</string>
+    <string name="PEGI_VIOLENCE">PEGI Violence</string>
+    <string name="pegi_rating">PEGI Rating</string>
+    <string name="no_data_found">No data found</string>
 </resources>

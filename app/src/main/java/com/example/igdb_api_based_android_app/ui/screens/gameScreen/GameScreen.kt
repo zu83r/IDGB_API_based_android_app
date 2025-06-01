@@ -131,7 +131,7 @@ fun GameScreen(
             }
         }
         Spacer(modifier = Modifier.height(20.dp))
-        if (tags.isNotEmpty()) {
+       if (tags.isNotEmpty()) {
             Spacer(modifier = Modifier.height(16.dp))
             Row(
                 modifier = Modifier
