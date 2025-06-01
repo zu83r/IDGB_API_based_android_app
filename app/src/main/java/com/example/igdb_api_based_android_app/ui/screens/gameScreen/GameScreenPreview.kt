@@ -20,18 +20,8 @@ fun GameScreenPreview() {
             studios = "Studio A, Studio B",
             genres = "Action, Adventure",
             tags = listOf(
-                Tag(
-                    id = 1,
-                    name = "PEGI 18",
-                    type = TagType.PEGI,
-                    iconRes = R.drawable.icons8_pegi_18
-                ),
-                Tag(
-                    id = 2,
-                    name = "Online",
-                    type = TagType.PEGI,
-                    iconRes = R.drawable.icons8_pegi_online
-                )
+                Tag(id = 1, type = TagType.PEGI_18),
+                Tag(id = 2, type = TagType.PEGI_ONLINE)
             )
         )
     }
