@@ -1,64 +1,57 @@
 package com.example.igdb_api_based_android_app.ui.reusableComponents.top.menuButton
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.ModalNavigationDrawer
-import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberDrawerState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
-import kotlinx.coroutines.launch
-import androidx.compose.foundation.clickable
+import androidx.compose.ui.unit.dp
 
 @Composable
 fun MenuButton(
     onSettingsClick: () -> Unit,
     onAboutClick: () -> Unit
 ) {
-    var drawerOpen by remember { mutableStateOf(false) }
-    val drawerState = rememberDrawerState(
-        if (drawerOpen) DrawerValue.Open else DrawerValue.Closed
-    )
-    val scope = rememberCoroutineScope()
-
-    ModalNavigationDrawer(
-        drawerState = drawerState,
-        drawerContent = {
-            ModalDrawerSheet {
-                ListItem(
-                    headlineContent = { Text("Settings") },
-                    modifier = androidx.compose.ui.Modifier
-                        .clickable {
-                            scope.launch { drawerState.close() }
-                            onSettingsClick()
-                        }
-                )
-                ListItem(
-                    headlineContent = { Text("About") },
-                    modifier = androidx.compose.ui.Modifier
-                        .clickable {
-                            scope.launch { drawerState.close() }
-                            onAboutClick()
-                        }
-                )
-            }
-        }
-    ) {
-        IconButton(onClick = {
-            drawerOpen = true
-            scope.launch { drawerState.open() }
-        }) {
+    var menuOpen by remember { mutableStateOf(false) }
+    Box {
+        IconButton(onClick = { menuOpen = true }) {
             Icon(Icons.Default.Menu, contentDescription = "Menu")
+        }
+        AnimatedVisibility(visible = menuOpen) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.5f))
+                    .clickable { menuOpen = false }
+            )
+        }
+        AnimatedVisibility(visible = menuOpen) {
+            Column(
+                Modifier
+                    .width(220.dp)
+                    .fillMaxHeight()
+                    .background(Color.White)
+                    .padding(16.dp)
+            ) {
+                Text("Settings", Modifier.clickable {
+                    menuOpen = false
+                    onSettingsClick()
+                })
+                Spacer(Modifier.height(16.dp))
+                Text("About", Modifier.clickable {
+                    menuOpen = false
+                    onAboutClick()
+                })
+            }
         }
     }
 }
@@ -67,4 +60,29 @@ fun MenuButton(
 @Composable
 fun MenuButtonPreview() {
     MenuButton(onSettingsClick = {}, onAboutClick = {})
+}
+
+@Preview(showBackground = true)
+@Composable
+fun MenuButtonPreviewWithOpen() {
+    var menuOpen by remember { mutableStateOf(true) }
+    Box {
+        MenuButton(
+            onSettingsClick = {},
+            onAboutClick = {}
+        )
+        if (menuOpen) {
+            Column(
+                Modifier
+                    .width(220.dp)
+                    .fillMaxHeight()
+                    .background(Color.White)
+                    .padding(16.dp)
+            ) {
+                Text("Settings", Modifier.clickable { menuOpen = false })
+                Spacer(Modifier.height(16.dp))
+                Text("About", Modifier.clickable { menuOpen = false })
+            }
+        }
+    }
 }

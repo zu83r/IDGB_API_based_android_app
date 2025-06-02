@@ -22,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -38,6 +39,9 @@ import androidx.compose.ui.unit.dp
 import com.example.igdb_api_based_android_app.model.Tag
 import com.example.igdb_api_based_android_app.ui.reusableComponents.top.TopBar
 import kotlinx.coroutines.delay
+import kotlin.text.compareTo
+import kotlin.text.toFloat
+import kotlin.unaryMinus
 
 @Composable
 fun GameScreen(
@@ -61,8 +65,6 @@ fun GameScreen(
         TopBar(
             searchText = searchText,
             onSearchTextChange = { searchText = it },
-            onMenuClick = { /* TODO */ },
-            onUserClick = { /* TODO */ }
         )
         Spacer(modifier = Modifier.height(16.dp))
         Row(
@@ -153,11 +155,15 @@ fun GameScreen(
                             contentDescription = stringResource(tag.type.stringRes),
                             modifier = Modifier.size(60.dp)
                         )
-                        AutoScrollTag(
-                            text = stringResource(tag.type.stringRes),
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier // No extra width or alignment here
-                        )
+                        Box(
+                            modifier = Modifier.width(60.dp), // Match image width
+                            contentAlignment = Alignment.Center
+                        ) {
+                            AutoScrollTag(
+                                text = stringResource(tag.type.stringRes),
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
                     }
                 }
             }
@@ -217,18 +223,25 @@ fun AutoScroll(
     modifier: Modifier = Modifier,
     scrollWidth: Dp
 ) {
-    val offset = remember { androidx.compose.animation.core.Animatable(0f) }
     val density = LocalDensity.current
-    LaunchedEffect(text) {
-        while (true) {
-            offset.animateTo(
-                targetValue = with(density) { scrollWidth.toPx() },
-                animationSpec = androidx.compose.animation.core.tween(durationMillis = 4000, delayMillis = 1000)
-            )
-            delay(1000)
-            offset.snapTo(0f)
+    var textWidthPx by remember(text) { mutableFloatStateOf(0f) }
+    val offset = remember { androidx.compose.animation.core.Animatable(0f) }
+    val scrollWidthPx = with(density) { scrollWidth.toPx() }
+
+    LaunchedEffect(text, textWidthPx, scrollWidthPx) {
+        offset.snapTo(0f)
+        if (textWidthPx > scrollWidthPx) {
+            while (true) {
+                offset.animateTo(
+                    targetValue = textWidthPx - scrollWidthPx,
+                    animationSpec = androidx.compose.animation.core.tween(durationMillis = 4000, delayMillis = 1000)
+                )
+                delay(1000)
+                offset.snapTo(0f)
+            }
         }
     }
+
     Box(
         modifier = modifier
             .width(scrollWidth)
@@ -237,9 +250,14 @@ fun AutoScroll(
         BasicText(
             text = text,
             style = style,
-            modifier = Modifier.graphicsLayer {
-                translationX = -offset.value
-            }
+            onTextLayout = { textLayoutResult ->
+                textWidthPx = textLayoutResult.size.width.toFloat()
+            },
+            modifier = Modifier
+                .width(scrollWidth) // Always set width to scrollWidth
+                .graphicsLayer {
+                    translationX = if (textWidthPx > scrollWidthPx) -offset.value else 0f
+                }
         )
     }
 }

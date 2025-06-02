@@ -12,7 +12,7 @@ import com.example.igdb_api_based_android_app.model.TagType
 fun GameScreenPreview() {
     IGDB_API_based_android_appTheme {
         GameScreen(
-            title = "Sample Game ve000ry long title that should be truncated",
+            title = "Sample Gamegggggg ve000ry long title that should be truncated",
             description = "This is a sample game description.",
             coverResId = R.drawable.ic_launcher_foreground,
             releaseDate = "2024-06-01",

@@ -25,9 +25,7 @@ fun HomeScreen(
     ) {
         TopBar(
             searchText = searchText,
-            onSearchTextChange = { searchText = it },
-            onMenuClick = { /* TODO */ },
-            onUserClick = { /* TODO */ }
+            onSearchTextChange = { searchText = it }
         )
     }
 }
