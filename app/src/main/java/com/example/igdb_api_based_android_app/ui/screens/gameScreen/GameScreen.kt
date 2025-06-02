@@ -1,42 +1,71 @@
 package com.example.igdb_api_based_android_app.ui.screens.gameScreen
 
+import android.annotation.SuppressLint
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.text.BasicText
-import com.example.igdb_api_based_android_app.viewmodel.GameViewModel
 import com.example.igdb_api_based_android_app.R
+import com.example.igdb_api_based_android_app.model.GameResponse
+import com.example.igdb_api_based_android_app.model.PegiRatingsTags
+import com.example.igdb_api_based_android_app.ui.reusableComponents.top.TopBar
+import com.example.igdb_api_based_android_app.viewmodel.GameViewModel
 import kotlinx.coroutines.delay
+import kotlin.compareTo
+import androidx.compose.animation.core.tween
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
+import kotlin.compareTo
+import kotlin.text.compareTo
 
 @Composable
 fun GameScreen(viewModel: GameViewModel) {
-    val games by viewModel.games.observeAsState(emptyList())
+    val games by viewModel.games.observeAsState(emptyList<GameResponse>())
     LaunchedEffect(Unit) { viewModel.loadGames() }
 
-    games.firstOrNull()?.let { game ->
+    games.firstOrNull()?.let { game: GameResponse ->
         GameScreenContent(
             title = game.name,
             description = game.summary ?: "",
-            coverResId = R.drawable.ic_launcher_foreground, // Placeholder
-            releaseDate = "Unknown", // Placeholder
-            publisher = "Unknown", // Placeholder
-            studios = "Unknown", // Placeholder
-            genres = "Unknown", // Placeholder
-            tags = emptyList() // Placeholder
+            coverResId = R.drawable.ic_launcher_foreground,
+            releaseDate = "Unknown",
+            publisher = "Unknown",
+            studios = "Unknown",
+            genres = "Unknown",
+            pegiTags = emptyList() // Use List<PegiRatingsTags>
         )
     }
 }
@@ -50,14 +79,21 @@ fun GameScreenContent(
     publisher: String,
     studios: String,
     genres: String,
-    tags: List<com.example.igdb_api_based_android_app.model.Tag>
-) {
+    pegiTags: List<PegiRatingsTags>
+
+)  {
+    var searchText by remember { mutableStateOf("") }
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
     ) {
+        TopBar(
+            searchText = searchText,
+            onSearchTextChange = { searchText = it }
+        )
+        Spacer(modifier = Modifier.height(8.dp))
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
@@ -129,31 +165,29 @@ fun GameScreenContent(
             }
         }
         Spacer(modifier = Modifier.height(20.dp))
-        if (tags.isNotEmpty()) {
+        if (pegiTags.isNotEmpty()) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                tags.forEach { tag ->
+                pegiTags.forEach { tag ->
                     Column(
+                        modifier = Modifier.width(60.dp), // Ensures both icon and text are in a 60.dp column
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Image(
-                            painter = painterResource(tag.type.iconRes),
-                            contentDescription = stringResource(tag.type.stringRes),
+                            painter = painterResource(tag.iconRes),
+                            contentDescription = stringResource(tag.stringRes),
                             modifier = Modifier.size(60.dp)
                         )
-                        Box(
-                            modifier = Modifier.width(60.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            AutoScrollTag(
-                                text = stringResource(tag.type.stringRes),
-                                style = MaterialTheme.typography.bodySmall
-                            )
-                        }
+                        AutoScrollTag(
+                            text = stringResource(tag.stringRes),
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.fillMaxWidth(),
+                            centerText = true // Center if not scrolling
+                        )
                     }
                 }
             }
@@ -204,75 +238,97 @@ fun GameScreenContent(
 }
 
 @Composable
-fun AutoScroll(
+fun AutoScrollText(
     text: String,
     style: TextStyle,
     modifier: Modifier = Modifier,
-    scrollWidth: Dp
+    scrollWidth: Dp,
+    centerText: Boolean = false
 ) {
-    val density = LocalDensity.current
-    var textWidthPx by remember(text) { mutableFloatStateOf(0f) }
-    val offset = remember { androidx.compose.animation.core.Animatable(0f) }
-    val scrollWidthPx = with(density) { scrollWidth.toPx() }
-
-    LaunchedEffect(text, textWidthPx, scrollWidthPx) {
-        offset.snapTo(0f)
-        if (textWidthPx > scrollWidthPx) {
-            while (true) {
-                offset.animateTo(
-                    targetValue = textWidthPx - scrollWidthPx,
-                    animationSpec = androidx.compose.animation.core.tween(durationMillis = 4000, delayMillis = 1000)
-                )
-                delay(1000)
-                offset.snapTo(0f)
-            }
-        }
-    }
+    val scrollState = rememberScrollState()
+    var textWidth by remember { mutableStateOf(0) }
+    val shouldScroll = textWidth > with(LocalDensity.current) { scrollWidth.toPx() }
 
     Box(
         modifier = modifier
             .width(scrollWidth)
-            .clipToBounds()
+            .height(32.dp)
+            .clipToBounds(),
+        contentAlignment = Alignment.Center // Always center vertically
     ) {
         BasicText(
             text = text,
             style = style,
-            onTextLayout = { textLayoutResult ->
-                textWidthPx = textLayoutResult.size.width.toFloat()
-            },
             modifier = Modifier
-                .width(scrollWidth)
-                .graphicsLayer {
-                    translationX = if (textWidthPx > scrollWidthPx) -offset.value else 0f
+                .horizontalScroll(scrollState)
+                .onGloballyPositioned { coordinates ->
+                    textWidth = coordinates.size.width
                 }
         )
     }
+
+    if (shouldScroll) {
+        LaunchedEffect(text) {
+            scrollState.scrollTo(0)
+            delay(1000)
+            val maxScroll = scrollState.maxValue
+            if (maxScroll > 0) {
+                while (true) {
+                    scrollState.animateScrollTo(
+                        maxScroll,
+                        animationSpec = tween(durationMillis = 4000)
+                    )
+                    delay(1000)
+                    scrollState.scrollTo(0)
+                    delay(1000)
+                }
+            }
+        }
+    }
 }
 
+@SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun AutoScrollTitle(
     text: String,
     style: TextStyle,
     modifier: Modifier = Modifier
 ) {
-    AutoScroll(
-        text = text,
-        style = style,
-        modifier = modifier.height(32.dp),
-        scrollWidth = 200.dp
-    )
+    BoxWithConstraints(
+        modifier = modifier.height(32.dp)
+    ) {
+        val width = maxWidth
+        AutoScrollText(
+            text = text,
+            style = style,
+            modifier = Modifier.height(32.dp),
+            scrollWidth = width
+        )
+    }
 }
 
 @Composable
 fun AutoScrollTag(
     text: String,
     style: TextStyle,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    centerText: Boolean = false
 ) {
-    AutoScroll(
-        text = text,
-        style = style,
-        modifier = modifier.height(24.dp),
-        scrollWidth = 60.dp
-    )
+    val tagWidth = 60.dp
+    Box(
+        modifier = modifier
+            .width(tagWidth)
+            .height(24.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        AutoScrollText(
+            text = text,
+            style = style,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(24.dp),
+            scrollWidth = tagWidth,
+            centerText = centerText
+        )
+    }
 }

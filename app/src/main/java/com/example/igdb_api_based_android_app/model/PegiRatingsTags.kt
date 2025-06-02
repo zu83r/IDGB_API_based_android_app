@@ -2,7 +2,7 @@ package com.example.igdb_api_based_android_app.model
 
 import com.example.igdb_api_based_android_app.R
 
-enum class TagType(val stringRes: Int, val iconRes: Int) {
+enum class PegiRatingsTags(val stringRes: Int, val iconRes: Int) {
     PEGI_3(R.string.PEGI_3, R.drawable.icons8_pegi_3),
     PEGI_7(R.string.PEGI_7, R.drawable.icons8_pegi_7),
     PEGI_12(R.string.PEGI_12, R.drawable.icons8_pegi_12),
@@ -20,7 +20,3 @@ enum class TagType(val stringRes: Int, val iconRes: Int) {
     PEGI_VIOLENCE(R.string.PEGI_VIOLENCE, R.drawable.icons8_pegi_violence)
 }
 
-data class Tag(
-    val id: Int,
-    val type: TagType
-)
