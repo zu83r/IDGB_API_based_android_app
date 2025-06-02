@@ -1,50 +1,48 @@
 package com.example.igdb_api_based_android_app.ui.screens.gameScreen
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.example.igdb_api_based_android_app.model.Tag
-import com.example.igdb_api_based_android_app.ui.reusableComponents.top.TopBar
+import androidx.compose.foundation.text.BasicText
+import com.example.igdb_api_based_android_app.viewmodel.GameViewModel
+import com.example.igdb_api_based_android_app.R
 import kotlinx.coroutines.delay
-import kotlin.text.compareTo
-import kotlin.text.toFloat
-import kotlin.unaryMinus
 
 @Composable
-fun GameScreen(
+fun GameScreen(viewModel: GameViewModel) {
+    val games by viewModel.games.observeAsState(emptyList())
+    LaunchedEffect(Unit) { viewModel.loadGames() }
+
+    games.firstOrNull()?.let { game ->
+        GameScreenContent(
+            title = game.name,
+            description = game.summary ?: "",
+            coverResId = R.drawable.ic_launcher_foreground, // Placeholder
+            releaseDate = "Unknown", // Placeholder
+            publisher = "Unknown", // Placeholder
+            studios = "Unknown", // Placeholder
+            genres = "Unknown", // Placeholder
+            tags = emptyList() // Placeholder
+        )
+    }
+}
+
+@Composable
+fun GameScreenContent(
     title: String,
     description: String,
     coverResId: Int,
@@ -52,21 +50,14 @@ fun GameScreen(
     publisher: String,
     studios: String,
     genres: String,
-    tags: List<Tag> = emptyList(), // <-- Add this
-    modifier: Modifier = Modifier
+    tags: List<com.example.igdb_api_based_android_app.model.Tag>
 ) {
-    var searchText by remember { mutableStateOf("") }
-
     Column(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
+            .verticalScroll(rememberScrollState())
     ) {
-        TopBar(
-            searchText = searchText,
-            onSearchTextChange = { searchText = it },
-        )
-        Spacer(modifier = Modifier.height(16.dp))
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
@@ -74,7 +65,7 @@ fun GameScreen(
             Image(
                 painter = painterResource(id = coverResId),
                 contentDescription = null,
-                modifier = Modifier.size(120.dp) // Increased size
+                modifier = Modifier.size(120.dp)
             )
             Spacer(modifier = Modifier.width(16.dp))
             Column(
@@ -84,7 +75,7 @@ fun GameScreen(
                     text = title,
                     style = MaterialTheme.typography.headlineMedium
                 )
-                Spacer(modifier = Modifier.height(12.dp)) // More space between title and date
+                Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     text = releaseDate,
                     style = MaterialTheme.typography.bodySmall,
@@ -104,12 +95,11 @@ fun GameScreen(
             Button(onClick = { /* TODO: Option 2 action */ }) {
                 Text("Option 2")
             }
-            // Add more options as needed
         }
         Spacer(modifier = Modifier.height(20.dp))
         Box(
             modifier = Modifier
-                .height(160.dp) // Set the max height as needed
+                .height(160.dp)
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
         ) {
@@ -156,7 +146,7 @@ fun GameScreen(
                             modifier = Modifier.size(60.dp)
                         )
                         Box(
-                            modifier = Modifier.width(60.dp), // Match image width
+                            modifier = Modifier.width(60.dp),
                             contentAlignment = Alignment.Center
                         ) {
                             AutoScrollTag(
@@ -173,14 +163,13 @@ fun GameScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(180.dp) // Adjust height as needed
+                    .height(180.dp)
                     .padding(bottom = 8.dp),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // TODO: Add gallery of images and videos here
             }
-            // Scroll selection bar placeholder
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -211,8 +200,6 @@ fun GameScreen(
         ) {
             // TODO: Add composables for related links (e.g., official site, IGDB, Wikipedia, etc.)
         }
-
-
     }
 }
 
@@ -254,7 +241,7 @@ fun AutoScroll(
                 textWidthPx = textLayoutResult.size.width.toFloat()
             },
             modifier = Modifier
-                .width(scrollWidth) // Always set width to scrollWidth
+                .width(scrollWidth)
                 .graphicsLayer {
                     translationX = if (textWidthPx > scrollWidthPx) -offset.value else 0f
                 }
@@ -289,4 +276,3 @@ fun AutoScrollTag(
         scrollWidth = 60.dp
     )
 }
-
